@@ -157,13 +157,13 @@ mod tests {
             Updater::new(io.clone(), PathBuf::from("rldyour-updater")),
             Err(IoError::InvalidConfiguration)
         ));
-        assert!(Updater::new(io, PathBuf::from("/usr/bin/rldyour-updater")).is_ok());
+        assert!(Updater::new(io, std::env::temp_dir().join("rldyour-updater")).is_ok());
     }
 
     #[test]
     fn requests_use_the_json_flag_and_bounded_output() {
         let io = NativeIo::new(1).unwrap().process_handle();
-        let updater = Updater::new(io, PathBuf::from("/usr/bin/rldyour-updater")).unwrap();
+        let updater = Updater::new(io, std::env::temp_dir().join("rldyour-updater")).unwrap();
         let request = updater.request("plan");
         assert_eq!(request.arguments, ["plan", "--json"]);
         assert_eq!(request.timeout, Duration::from_secs(10));
