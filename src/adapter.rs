@@ -1,5 +1,5 @@
-use crate::view::*;
-use nddev_device_sync_adapter_io::{CancellationToken, IoError, ProcessIo, ProcessRequest};
+use crate::{Error, IoError, ReadUpdater, view::*};
+use nddev_device_sync_adapter_io::{CancellationToken, ProcessIo, ProcessRequest};
 
 use std::{path::PathBuf, time::Duration};
 
@@ -10,9 +10,9 @@ pub struct Updater {
 }
 
 impl Updater {
-    pub fn new(io: ProcessIo, executable: PathBuf) -> Result<Self, IoError> {
+    pub fn new(io: ProcessIo, executable: PathBuf) -> Result<Self, Error> {
         if !executable.is_absolute() {
-            return Err(IoError::InvalidConfiguration);
+            return Err(IoError::InvalidConfiguration.into());
         }
         Ok(Self { io, executable })
     }
@@ -26,28 +26,27 @@ impl Updater {
             max_output_bytes: 1_048_576,
         }
     }
+}
 
-    pub async fn plan(&self, cancellation: CancellationToken) -> Result<Plan, IoError> {
+impl ReadUpdater for Updater {
+    async fn plan(&self, cancellation: CancellationToken) -> Result<Plan, Error> {
         let (plan, _): (Plan, _) = self
             .io
             .json(self.request("plan"), &[0], cancellation)
             .await?;
         if !valid_plan(&plan) {
-            return Err(IoError::InvalidResponse);
+            return Err(Error::Protocol);
         }
         Ok(plan)
     }
 
-    pub async fn last_run(
-        &self,
-        cancellation: CancellationToken,
-    ) -> Result<UpdateRunSummary, IoError> {
+    async fn last_run(&self, cancellation: CancellationToken) -> Result<UpdateRunSummary, Error> {
         let (report, _): (UpdateRunSummary, _) = self
             .io
             .json(self.request("status"), &[0], cancellation)
             .await?;
         if !valid_summary(&report) {
-            return Err(IoError::InvalidResponse);
+            return Err(Error::Protocol);
         }
         Ok(report)
     }
@@ -155,7 +154,7 @@ mod tests {
         let io = NativeIo::new(1).unwrap().process_handle();
         assert!(matches!(
             Updater::new(io.clone(), PathBuf::from("rldyour-updater")),
-            Err(IoError::InvalidConfiguration)
+            Err(Error::Io(IoError::InvalidConfiguration))
         ));
         assert!(Updater::new(io, std::env::temp_dir().join("rldyour-updater")).is_ok());
     }

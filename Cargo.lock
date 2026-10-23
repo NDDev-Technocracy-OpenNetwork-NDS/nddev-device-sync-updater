@@ -302,6 +302,7 @@ dependencies = [
  "nddev-device-sync-adapter-io",
  "serde",
  "serde_json",
+ "thiserror",
  "tokio",
 ]
 

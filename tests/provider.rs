@@ -1,5 +1,5 @@
 use nddev_device_sync_adapter_io::{CancellationToken, NativeIo};
-use nddev_device_sync_updater::{UpdateRunSummary, Updater};
+use nddev_device_sync_updater::{ReadUpdater, Updater, view::UpdateRunSummary};
 
 #[tokio::test]
 #[ignore = "requires NDS_TEST_UPDATER pointing to the real installed updater"]
