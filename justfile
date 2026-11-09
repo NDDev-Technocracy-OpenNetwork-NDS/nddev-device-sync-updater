@@ -1,5 +1,9 @@
 set shell := ["bash", "-euo", "pipefail", "-c"]
 
+# List the project commands.
+default:
+    @just --list
+
 check:
     just --fmt --check
     cargo fmt -- --check
@@ -13,10 +17,6 @@ test: build audit
 
 provider-check:
     python3 scripts/check-provider.py
-
-# List the project commands.
-default:
-    @just --list
 
 # Fetch locked source dependencies without compiling.
 setup:
